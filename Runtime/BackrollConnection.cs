@@ -191,16 +191,15 @@ public unsafe class BackrollConnection : IDisposable {
 
    unsafe void Send<T>(in T msg, Reliability reliability = Reliability.Unreliable)
                       where T : struct, INetworkSerializable {
-     int size = SerializationConstants.kMaxMessageSize;
-     var buffer = stackalloc byte[size];
-     var serializer = Serializer.Create(buffer, (uint)size);
+     Span<byte> buffer = stackalloc byte[SerializationConstants.kMaxMessageSize];
+     var serializer = Serializer.Create(buffer);
      _messageHandlers.Serialize<T>(msg, ref serializer);
 
      _packets_sent++;
      _lastSendTime = BackrollTime.GetTime();
      _bytes_sent += serializer.Position;
 
-     LobbyMember.SendMessage(serializer.ToFixedBuffer(), reliability);
+     LobbyMember.SendMessage(serializer, reliability);
    }
 
    public void Disconnect() {
@@ -511,8 +510,8 @@ public unsafe class BackrollConnection : IDisposable {
      _remoteFrameAdvantage = msg.FrameAdvantage;
    }
 
-   void OnNetworkMessage(FixedBuffer buffer) {
-      if (buffer.Size <= 0) return;
+   void OnNetworkMessage(ReadOnlySpan<byte> buffer) {
+      if (buffer.Length <= 0) return;
       var handled = _messageHandlers.CanHandle(buffer[0]);
       if (_disconnect_notify_sent && _current_state == State.Running) {
          OnNetworkResumed?.Invoke();
