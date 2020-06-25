@@ -15,13 +15,17 @@ add the following to your `Packages/manifest.json`:
 ```json
 {
   "dependencies": {
-    "com.houraiteahouse.backroll": "0.1.0"
+    "com.houraiteahouse.backroll": "0.1.1"
   },
   "scopedRegistries": [
     {
       "name": "Hourai Teahouse",
       "url": "https://upm.houraiteahouse.net",
-      "scopes": ["com.houraiteahouse"]
+      "scopes": [
+        "com.houraiteahouse",
+        "com.facepunch",
+        "com.discord"
+      ]
     }
   ]
 }
