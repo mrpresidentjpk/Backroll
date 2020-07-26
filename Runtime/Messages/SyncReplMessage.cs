@@ -1,10 +1,10 @@
-using HouraiTeahouse.Networking;
+using HouraiTeahouse.Serialization;
 
 namespace HouraiTeahouse.Backroll {
 
-public struct KeepAliveMessage : INetworkSerializable {
-  public void Serialize(ref Serializer serializer) {}
-  public void Deserialize(ref Deserializer deserializer) {}
+public struct KeepAliveMessage : ISerializable {
+  public void Serialize<T>(ref T serializer) where T : struct, ISerializer {}
+  public void Deserialize<T>(ref T deserializer) where T : struct, IDeserializer {}
 }
 
 }

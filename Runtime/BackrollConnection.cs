@@ -1,4 +1,5 @@
 using HouraiTeahouse.Networking;
+using HouraiTeahouse.Serialization;
 using System.Runtime.InteropServices;
 using System;
 using Unity.Collections.LowLevel.Unsafe;
@@ -8,7 +9,7 @@ using Random = UnityEngine.Random;
 
 namespace HouraiTeahouse.Backroll {
 
-public struct BackrollConnectStatus : INetworkSerializable {
+public struct BackrollConnectStatus : ISerializable {
    uint data;
 
    public bool Disconnected {
@@ -20,10 +21,10 @@ public struct BackrollConnectStatus : INetworkSerializable {
       set => data = (uint)((data & 1) | (uint)(value << 1));
    }
 
-  public void Serialize(ref Serializer serializer) =>
-     serializer.Write(data);
-  public void Deserialize(ref Deserializer deserializer) =>
-     data = deserializer.ReadUInt32();
+  public void Serialize<T>(ref T serializer) where T : struct, ISerializer 
+    => serializer.Write(data);
+  public void Deserialize<T>(ref T deserializer) where T : struct, IDeserializer
+    => data = deserializer.ReadUInt32();
 }
 
 public unsafe class BackrollConnection : IDisposable {
@@ -190,16 +191,16 @@ public unsafe class BackrollConnection : IDisposable {
    }
 
    unsafe void Send<T>(in T msg, Reliability reliability = Reliability.Unreliable)
-                      where T : struct, INetworkSerializable {
+                      where T : struct, ISerializable {
      Span<byte> buffer = stackalloc byte[SerializationConstants.kMaxMessageSize];
-     var serializer = Serializer.Create(buffer);
-     _messageHandlers.Serialize<T>(msg, ref serializer);
+     var serializer = FixedSizeSerializer.Create(buffer);
+     _messageHandlers.Serialize<T, FixedSizeSerializer>(msg, ref serializer);
 
      _packets_sent++;
      _lastSendTime = BackrollTime.GetTime();
-     _bytes_sent += serializer.Position;
+     _bytes_sent += serializer.GetPosition();
 
-     LobbyMember.SendMessage(serializer, reliability);
+     LobbyMember.SendMessage(serializer.AsReadOnlySpan(), reliability);
    }
 
    public void Disconnect() {

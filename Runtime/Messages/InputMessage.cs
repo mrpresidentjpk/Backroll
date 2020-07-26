@@ -1,11 +1,11 @@
-using HouraiTeahouse.Networking;
+using HouraiTeahouse.Serialization;
 using UnityEngine;
 using UnityEngine.Assertions;
 using Unity.Collections.LowLevel.Unsafe;
 
 namespace HouraiTeahouse.Backroll {
 
-public unsafe struct InputMessage : INetworkSerializable {
+public unsafe struct InputMessage : ISerializable {
 
    public const int kMaxCompressedBits = 4096;
 
@@ -23,7 +23,7 @@ public unsafe struct InputMessage : INetworkSerializable {
    public uint                        InputSize; // XXX: shouldn't be in every single packet!
    public fixed byte                  bits[kMaxCompressedBits / 8]; /* must be last */
 
-  public void Serialize(ref Serializer serializer) {
+  public void Serialize<T>(ref T serializer) where T : struct, ISerializer {
      fixed (uint* status = connect_status) {
       for (var i = 0; i < BackrollConstants.kMaxPlayers; i++) {
          // Doable since BackrollConnectionStatus is exactly the size of
@@ -41,7 +41,7 @@ public unsafe struct InputMessage : INetworkSerializable {
      }
   }
 
-  public void Deserialize(ref Deserializer deserializer) {
+  public void Deserialize<T>(ref T deserializer) where T : struct, IDeserializer {
      fixed (uint* status = connect_status) {
       for (var i = 0; i < BackrollConstants.kMaxPlayers; i++) {
          // Doable since BackrollConnectionStatus is exactly the size of

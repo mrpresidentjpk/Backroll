@@ -1,14 +1,14 @@
-using HouraiTeahouse.Networking;
+using HouraiTeahouse.Serialization;
 
 namespace HouraiTeahouse.Backroll {
 
-public struct QualityReplyMessage : INetworkSerializable {
+public struct QualityReplyMessage : ISerializable {
   public uint Pong;
 
-  public void Serialize(ref Serializer serializer) =>
-    serializer.Write(Pong);
-  public void Deserialize(ref Deserializer deserializer) =>
-    Pong = deserializer.ReadUInt32();
+  public void Serialize<T>(ref T serializer) where T : struct, ISerializer 
+    => serializer.Write(Pong);
+  public void Deserialize<T>(ref T deserializer) where T : struct, IDeserializer
+    => Pong = deserializer.ReadUInt32();
 }
 
 }
